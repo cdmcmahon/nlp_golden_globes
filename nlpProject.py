@@ -14,8 +14,8 @@ AWARDS = ["Best Motion Picture – Drama", "Best Motion Picture – Musical or C
 "Best Actress – Motion Picture Drama", "Best Actress – Motion Picture Musical or Comedy", "Best Supporting Actor – Motion Picture",
 "Best Supporting Actress – Motion Picture", "Best Screenplay", "Best Original Score", "Best Original Song", "Best Foreign Language Film",
 "Best Animated Feature Film"]
-NAME_RE = re.compile("[A-Z][a-z]+\s[A-Z][a-z]+")
-WIN_WORDS = ["win", "won", "winner"]
+NAME_RE = re.compile("winner.*is ([A-Z][a-z]+\s[A-Z][a-z]+)")
+#WIN_WORDS = ["win", "won", "winner"]
 
 #-------------------------------------------------------------------------------
 # Classes
@@ -48,9 +48,11 @@ def tweet_winner_people(tweet, award):
     counts = dict()
     possible_winners = list()
     for win_word in WIN_WORDS:
-        if award in tweet['text'] and win_word in tweet['text']:
+        if award in tweet['text']: #and win_word in tweet['text']:
             possible_winners = re.findall(NAME_RE, tweet['text'])
 
+    #add a check for "winner is (match)" or "winner was (match)", etc.
+            
     return possible_winners
 
 def add_counts (source, target):
@@ -72,6 +74,13 @@ def find_winner_people(award):
         return max(results, key = results.get)
     else:
         return None
+        
+def find_all_winners():
+    results = dict()
+    for award in AWARDS:
+        results[award] = find_winner_people(award)
+        
+    return results
 #-------------------------------------------------------------------------------
 # Main
 #-------------------------------------------------------------------------------
