@@ -5,16 +5,19 @@ import re, string
 with open('goldenglobes.json', 'r') as f:
  tweets = map(json.loads, f)
 
+tweet_text = [tweet['text'] for tweet in tweets]
 #-------------------------------------------------------------------------------
 # Constants and Variables
 #-------------------------------------------------------------------------------
 
-AWARDS = ["Best Motion Picture – Drama", "Best Motion Picture – Musical or Comedy", "Best Director",
-"Best Actor – Motion Picture Drama", "Best Actor – Motion Picture Musical or Comedy",
-"Best Actress – Motion Picture Drama", "Best Actress – Motion Picture Musical or Comedy", "Best Supporting Actor – Motion Picture",
-"Best Supporting Actress – Motion Picture", "Best Screenplay", "Best Original Score", "Best Original Song", "Best Foreign Language Film",
-"Best Animated Feature Film"]
-NAME_RE = re.compile("winner.*is ([A-Z][a-z]+\s[A-Z][a-z]+)")
+AWARDS = [u"Best Picture Drama", u"Best Picture Musical or Comedy", u"Best Director",
+u"Best Actor Drama", u"Best Actor Musical or Comedy",
+u"Best Actress Drama", u"Best Actress Musical or Comedy", u"Best Supporting Actor",
+u"Best Supporting Actress", u"Best Screenplay", u"Best Original Score", u"Best Original Song", u"Best Foreign Language Film",
+u"Best Animated Feature Film"]
+NAME_RE = "([A-Z][a-z]+\s[A-Z][a-z]+)"
+WINNER_RE = re.compile("winner.*is " + NAME_RE)
+WON_RE = re.compile(NAME_RE + " won")
 #WIN_WORDS = ["win", "won", "winner"]
 
 #-------------------------------------------------------------------------------
@@ -47,12 +50,11 @@ def tweet_winner_people(tweet, award):
     """Takes a FULL tweet and checks to see if it might be announcing the winner of award. If so returns a list containing all names in the tweet."""
     counts = dict()
     possible_winners = list()
-    for win_word in WIN_WORDS:
-        if award in tweet['text']: #and win_word in tweet['text']:
-            possible_winners = re.findall(NAME_RE, tweet['text'])
+    if award in tweet['text']:
+        possible_winners = re.findall(WINNER_RE, tweet['text']) + re.findall(WON_RE, tweet['text'])
 
     #add a check for "winner is (match)" or "winner was (match)", etc.
-            
+
     return possible_winners
 
 def add_counts (source, target):
@@ -74,19 +76,23 @@ def find_winner_people(award):
         return max(results, key = results.get)
     else:
         return None
-        
+
 def find_all_winners():
+    "Given proper constants returns a dict with awards as keys and winners as values."
     results = dict()
     for award in AWARDS:
         results[award] = find_winner_people(award)
-        
+
     return results
 #-------------------------------------------------------------------------------
 # Main
 #-------------------------------------------------------------------------------
 
 def main():
-    pass
+    results = find_all_winners()
+    print results
+    #for award, winner in results:
+    #    print award + ": " + winner
 
 if __name__ == '__main__':
     main()
