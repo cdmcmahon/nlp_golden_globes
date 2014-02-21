@@ -15,10 +15,14 @@ u"Best Actor Drama", u"Best Actor Musical or Comedy",
 u"Best Actress Drama", u"Best Actress Musical or Comedy", u"Best Supporting Actor",
 u"Best Supporting Actress", u"Best Screenplay", u"Best Original Score", u"Best Original Song", u"Best Foreign Language Film",
 u"Best Animated Feature Film"]
-NAME_RE = "([A-Z][a-z]+\s[A-Z][a-z]+)"
-WINNER_RE = re.compile("winner.*is " + NAME_RE)
-WON_RE = re.compile(NAME_RE + " won")
-#WIN_WORDS = ["win", "won", "winner"]
+
+
+BIGRAM_RE = "([A-Z][a-z]+\s[A-Z][a-z]+)"
+UNIGRAM_RE = "([A-Z][a-z]+)"
+BIGRAM_WINNER_RE = re.compile("winner.*is " + BIGRAM_RE)
+BIGRAM_WON_RE = re.compile(BIGRAM_RE + " won")
+UNIGRAM_WINNER_RE = re.compile("winner.*is " + UNIGRAM_RE)
+UNIGRAM_WON_RE = re.compile(UNIGRAM_RE + " won")
 
 #-------------------------------------------------------------------------------
 # Classes
@@ -51,8 +55,15 @@ def tweet_winner_people(tweet, award):
     counts = dict()
     possible_winners = list()
     if award in tweet['text']:
-        possible_winners = re.findall(WINNER_RE, tweet['text']) + re.findall(WON_RE, tweet['text'])
-
+        # Get unigram and bigram possible winners
+        unigram_possible_winners = re.findall(UNIGRAM_WINNER_RE, tweet['text']) + re.findall(UNIGRAM_WON_RE, tweet['text']);
+        bigram_possible_winners = re.findall(BIGRAM_WINNER_RE, tweet['text']) + re.findall(BIGRAM_WON_RE, tweet['text']);
+        # Remove unigrams contained in bigrams
+        for upw in unigram_possible_winners:
+            for bpw in bigram_possible_winners:
+                if upw in bpw:
+                    unigram_possible_winners.remove(upw)
+        possible_winners = unigram_possible_winners + bigram_possible_winners
     #add a check for "winner is (match)" or "winner was (match)", etc.
 
     return possible_winners
@@ -77,11 +88,14 @@ def find_winner_people(award):
     else:
         return None
 
+
+
 def find_all_winners():
     "Given proper constants returns a dict with awards as keys and winners as values."
     results = dict()
     for award in AWARDS:
         results[award] = find_winner_people(award)
+
 
     return results
 #-------------------------------------------------------------------------------
@@ -90,9 +104,10 @@ def find_all_winners():
 
 def main():
     results = find_all_winners()
-    print results
-    #for award, winner in results:
-    #    print award + ": " + winner
+    print "AWARD WINNERS:\n\n"
+    for award, winner in results.iteritems():
+        if winner:
+            print award + ": " + winner
 
 if __name__ == '__main__':
     main()
