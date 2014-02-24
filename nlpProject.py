@@ -37,7 +37,7 @@ The winner of {award} is {winner}.
 The presenter was {presenter}.
 Other nominees were: {nominees}.
 ----------------------------------"""
-    def __init__(self, award, winner, presenter, nominees):
+    def __init__(self, award, winner=None, presenter=None, nominees=None):
         self.award = award
         self.winner = winner
         self.presenter = presenter
@@ -50,7 +50,7 @@ Other nominees were: {nominees}.
 #-------------------------------------------------------------------------------
 # Functions
 #-------------------------------------------------------------------------------
-def tweet_winner_people(tweet, award):
+def tweet_winners(tweet, award):
     """Takes a FULL tweet and checks to see if it might be announcing the winner of award. If so returns a list containing all names in the tweet."""
     counts = dict()
     possible_winners = list()
@@ -74,10 +74,10 @@ def tweet_winner_people(tweet, award):
 def add_counts (source, target):
     target = {x:source.count(x) for x in source}
 
-def find_winner_people(award):
+def find_winners(award):
     results = dict()
     for tweet in tweets:
-        for r in tweet_winner_people(tweet, award):
+        for r in tweet_winners(tweet, award):
             if r in results:
                 results[r] += 1
             else:
@@ -91,13 +91,11 @@ def find_winner_people(award):
     else:
         return None
 
-
-
 def find_all_winners():
     "Given proper constants returns a dict with awards as keys and winners as values."
     results = dict()
     for award in AWARDS:
-        results[award] = find_winner_people(award)
+        results[award] = find_winners(award)
 
 
     return results
@@ -111,6 +109,8 @@ def main():
     for award, winner in results.iteritems():
         if winner:
             print award + ": " + winner
+        else:
+            print "Could not find winner for " + award
 
 if __name__ == '__main__':
     main()
