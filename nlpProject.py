@@ -92,7 +92,7 @@ def tweet_winners(tweet, award):
                 if upw in bpw:
                     unigram_possible_winners.remove(upw)
         # Weight bigram winners more by adding them twice
-        possible_winners = unigram_possible_winners + bigram_possible_winners
+        possible_winners = unigram_possible_winners + bigram_possible_winners + bigram_possible_winners
     #add a check for "winner is (match)" or "winner was (match)", etc.
 
     return possible_winners
@@ -129,11 +129,45 @@ def find_all_winners():
 
 
     return results
+
+
+def find_host():
+    # This function will find the host of the show.
+    results = dict()
+    for tweet in tweets:
+        possible_winners = list()
+        tweet_text = tweet['text']
+        host_words = ["host", "hosting", "hosts", "hosted", "hosted by"]
+        for w in host_words:
+            if w in tweet_text:
+                possible_winners = re.findall(BIGRAM_RE, tweet_text)
+        for r in possible_winners:
+            if r in results:
+                results[r] += 1
+            else:
+                results[r] = 1
+
+    if results:
+        return max(results, key = results.get)
+    else:
+        return None
+
+
+
+
+
+
+
+
+
+
 #-------------------------------------------------------------------------------
 # Main
 #-------------------------------------------------------------------------------
 
 def main():
+    host = find_host()
+    print "\nHost: " + host
     results = find_all_winners()
     print "\nAWARD WINNERS:\n"
     for award, winner in results.iteritems():
