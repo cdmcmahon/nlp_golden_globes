@@ -32,10 +32,10 @@ AWARDS = [["Best Picture", "Motion"],
 ["Best Actor", "Comedy", "TV"],
 ["Best Actress", "Comedy", "TV"],
 ["Best Actor", "Miniseries" "Television", "TV"],
-["Best Actress", "Miniseries" "Television", "TV"],
+["Best Actress", "Miniseries", "Television", "TV"],
 ["Best Supporting Actor", "Television", "TV"],
 ["Best Supporting Actress", "Television", "TV"],
-["Best Miniseries" "TV Film", "Series"]]
+["Best Miniseries", "TV Film", "Series"]]
 
 AWARDS_NAMES = ["Best Motion Picture - Drama",
 "Best Motion Picure - Musical or Comedy",
@@ -130,6 +130,7 @@ def tweet_winners(tweet, award):
 
 def add_counts (source, target):
     target = {x:source.count(x) for x in source}
+    return
 
 def find_winners(award):
     results = dict()
