@@ -10,14 +10,40 @@ tweet_text = [tweet['text'] for tweet in tweets]
 # Constants and Variables
 #-------------------------------------------------------------------------------
 
-AWARDS = [u"Best Motion", u"Best Musical Comedy", u"Best Director",
-u"Best Actor Drama", u"Best Actor Musical or Comedy",
-u"Best Actress Drama", u"Best Actress Musical or Comedy", u"Best Supporting Actor",
-u"Best Supporting Actress", u"Best Screenplay", u"Best Original Score", u"Best Original Song", u"Foreign Film",
+AWARDS = [[u"Best Motion Picture", u"Best", u"Motion", u"Drama"], 
+[u"Motion", u"Musical", u"Comedy"], 
+[u"Best Director"],
+[u"Best Actor", u"Drama", u"Motion", u"Picture"], 
+[u"Best Actor", u"Musical", u"Comedy", u"Motion" u"Picture"],
+[u"Best Actress", u"Drama", u"Motion", u"Picture"], 
+[u"Best Actress", u"Musical", u"Comedy", u"Motion" u"Picture"], 
+[u"Best Supporting Actor"],
+[u"Best Supporting Actress"], 
+[u"Best Screenplay"], 
+[u"Best Original Score", u"Score"], 
+[u"Best Original Song"], 
+[u"Foreign", u"Film"],
+[u"Best Animated"]]
+
+AWARDS_NAMES = [u"Best Motion Picture - Drama",
+u"Best Motion Picture - Musical or Comedy",
+u"Best Director",
+u"Best Actor in a Motion Picture - Drama",
+u"Best Actor in a Motion Picture - Musical or Comedy",
+u"Best Actress in a Motion Picture - Drama",
+u"Best Actress in a Motion Picture - Musical or Comedy",
+u"Best Supporting Actor - Drama, Musical or Comedy",
+u"Best Supporting Actress - Drama, Musical or Comedy",
+u"Best Screenplay",
+u"Best Original Score",
+u"Best Original Song",
+u"Best Foreign Film",
 u"Best Animated Feature Film"]
 
+NUMBER_OF_AWARDS = len(AWARDS);
 
-BIGRAM_RE = "([A-Z][a-z]+\s[A-Z][a-z]+)"
+
+BIGRAM_RE = "([A-Z][a-z]+\s[A-Z][-'a-z]+)"
 UNIGRAM_RE = "([A-Z][a-z]+)"
 BIGRAM_WINNER_RE = re.compile("winner.*is " + BIGRAM_RE)
 BIGRAM_WON_RE = re.compile(BIGRAM_RE + " won")
@@ -77,14 +103,16 @@ def add_counts (source, target):
 def find_winners(award):
     results = dict()
     for tweet in tweets:
-        for r in tweet_winners(tweet, award):
-            if r in results:
-                results[r] += 1
-            else:
-                results[r] = 1
+        for award_phrase in award:
+            for r in tweet_winners(tweet, award_phrase):
+                if r in results:
+                    results[r] += 1
+                else:
+                    results[r] = 1
 
-    if award in results:
-        results.pop(award)
+    for award_phrase in award:
+        if award_phrase in results:
+            results.pop(award_phrase)
 
     if results:
         return max(results, key = results.get)
@@ -94,8 +122,10 @@ def find_winners(award):
 def find_all_winners():
     "Given proper constants returns a dict with awards as keys and winners as values."
     results = dict()
-    for award in AWARDS:
-        results[award] = find_winners(award)
+    # for award in AWARDS:
+    #     results[award[0]] = find_winners(award)
+    for x in range(0,NUMBER_OF_AWARDS):
+        results[AWARDS_NAMES[x]] = find_winners(AWARDS[x]);
 
 
     return results
@@ -111,6 +141,7 @@ def main():
             print award + ": " + winner
         else:
             print "Could not find winner for " + award
+    print "\n"
 
 if __name__ == '__main__':
     main()
