@@ -10,45 +10,73 @@ tweet_text = [tweet['text'] for tweet in tweets]
 # Constants and Variables
 #-------------------------------------------------------------------------------
 
-AWARDS = [[u"Best Motion Picture", u"Best", u"Motion", u"Drama"], 
-[u"Motion", u"Musical", u"Comedy"], 
-[u"Best Director"],
-[u"Best Actor", u"Drama", u"Motion", u"Picture"], 
-[u"Best Actor", u"Musical", u"Comedy", u"Motion" u"Picture"],
-[u"Best Actress", u"Drama", u"Motion", u"Picture"], 
-[u"Best Actress", u"Musical", u"Comedy", u"Motion" u"Picture"], 
-[u"Best Supporting Actor"],
-[u"Best Supporting Actress"], 
-[u"Best Screenplay"], 
-[u"Best Original Score", u"Score"], 
-[u"Best Original Song"], 
-[u"Foreign", u"Film"],
-[u"Best Animated"]]
+AWARDS = [["Best Picture", "Motion"], 
+["Motion", "Musical", "Comedy"], 
+["Best Director"],
+["Best Actor", "Drama", "Motion", "Picture"], 
+["Best Actor", "Musical", "Comedy", "Motion"],
+["Best Actress", "Drama", "Motion", "Picture"], 
+["Best Actress", "Musical", "Comedy", "Motion"], 
+["Best Supporting Actor"],
+["Best Supporting Actress"], 
+["Best Screenplay"], 
+["Best Original Score", "Score"], 
+["Best Original Song"], 
+["Foreign", "Film"],
+["Best Animated"],
+# TV AWARDS
+["Best" "Drama" "TV"],
+["Best" "Comedy", "Series"],
+["Best Actor", "Drama", "TV"],
+["Best Actress", "Drama", "TV"],
+["Best Actor", "Comedy", "TV"],
+["Best Actress", "Comedy", "TV"],
+["Best Actor", "Miniseries" "Television", "TV"],
+["Best Actress", "Miniseries" "Television", "TV"],
+["Best Supporting Actor", "Television", "TV"],
+["Best Supporting Actress", "Television", "TV"],
+["Best Miniseries" "TV Film", "Series"]]
 
-AWARDS_NAMES = [u"Best Motion Picture - Drama",
-u"Best Motion Picture - Musical or Comedy",
-u"Best Director",
-u"Best Actor in a Motion Picture - Drama",
-u"Best Actor in a Motion Picture - Musical or Comedy",
-u"Best Actress in a Motion Picture - Drama",
-u"Best Actress in a Motion Picture - Musical or Comedy",
-u"Best Supporting Actor - Drama, Musical or Comedy",
-u"Best Supporting Actress - Drama, Musical or Comedy",
-u"Best Screenplay",
-u"Best Original Score",
-u"Best Original Song",
-u"Best Foreign Film",
-u"Best Animated Feature Film"]
+AWARDS_NAMES = ["Best Motion Picture - Drama",
+"Best Motion Picure - Musical or Comedy",
+"Best Director",
+"Best Actor in a Motion Picture - Drama",
+"Best Actor in a Motion Picture - Musical or Comedy",
+"Best Actress in a Motion Picture - Drama",
+"Best Actress in a Motion Picture - Musical or Comedy",
+"Best Supporting Actor - Drama, Musical or Comedy",
+"Best Supporting Actress - Drama, Musical or Comedy",
+"Best Screenplay",
+"Best Original Score",
+"Best Original Song",
+"Best Foreign Film",
+"Best Animated Feature Film",
+# TV AWARDS
+"Best Television Series - Drama",
+"Best Television Series - Musical or Comedy",
+"Best Actor in a TV Series - Drama",
+"Best Actress in a TV Series - Drama",
+"Best Actor in a TV Series - Musical or Comedy",
+"Best Actress in a TV Series - Musical or Comedy",
+"Best Actor in a TV Miniseries or Film",
+"Best Actress in a TV Miniseries or Film",
+"Best Supporting Actor in a TV Series - Drama, Musical or Comedy",
+"Best Supporting Actress in a TV Series - Drama, Musical or Comedy",
+"Best Miniseries or TV Film"]
 
 NUMBER_OF_AWARDS = len(AWARDS);
+NUMBER_OF_BEST_DRESSED = 8;
+NUMBER_OF_PRESENTERS = 8;
 
 
-BIGRAM_RE = "([A-Z][a-z]+\s[A-Z][-'a-z]+)"
+BIGRAM_RE = "([A-Z][a-z]+\s[A-Z][-'a-zA-Z]+)"
 UNIGRAM_RE = "([A-Z][a-z]+)"
 BIGRAM_WINNER_RE = re.compile("winner.*is " + BIGRAM_RE)
 BIGRAM_WON_RE = re.compile(BIGRAM_RE + " won")
 UNIGRAM_WINNER_RE = re.compile("winner.*is " + UNIGRAM_RE)
 UNIGRAM_WON_RE = re.compile(UNIGRAM_RE + " won")
+
+PRESENTED_BY_RE = re.compile("presented.*by " + BIGRAM_RE)
 
 #-------------------------------------------------------------------------------
 # Classes
@@ -86,13 +114,16 @@ def tweet_winners(tweet, award):
         # Get unigram and bigram possible winners
         unigram_possible_winners = re.findall(UNIGRAM_WINNER_RE, tweet['text']) + re.findall(UNIGRAM_WON_RE, tweet['text']);
         bigram_possible_winners = re.findall(BIGRAM_WINNER_RE, tweet['text']) + re.findall(BIGRAM_WON_RE, tweet['text']);
+        
+
         # Remove unigrams contained in bigrams
         for upw in unigram_possible_winners:
             for bpw in bigram_possible_winners:
                 if upw in bpw:
-                    unigram_possible_winners.remove(upw)
-        # Weight bigram winners more by adding them twice
-        possible_winners = unigram_possible_winners + bigram_possible_winners + bigram_possible_winners
+                    if upw in unigram_possible_winners:
+                        unigram_possible_winners.remove(upw)
+        # Weight bigram winners more by adding them thrice
+        possible_winners = unigram_possible_winners + bigram_possible_winners + bigram_possible_winners + bigram_possible_winners
     #add a check for "winner is (match)" or "winner was (match)", etc.
 
     return possible_winners
@@ -140,7 +171,7 @@ def find_host():
         host_words = ["host", "hosting", "hosts", "hosted", "hosted by"]
         for w in host_words:
             if w in tweet_text:
-                possible_winners = re.findall(BIGRAM_RE, tweet_text)
+                possible_winners = possible_winners + re.findall(BIGRAM_RE, tweet_text)
         for r in possible_winners:
             if r in results:
                 results[r] += 1
@@ -154,10 +185,60 @@ def find_host():
 
 
 
+def find_best_dressed():
+    # This function will find the host of the show.
+    results = dict()
+    for tweet in tweets:
+        possible_winners = list()
+        tweet_text = tweet['text']
+        host_words = ["best dressed", "best dress"]
+        for w in host_words:
+            if w in tweet_text:
+                possible_winners = possible_winners + re.findall(BIGRAM_RE, tweet_text)
+        for r in possible_winners:
+            if r in results:
+                results[r] += 1
+            else:
+                results[r] = 1
+    results.pop("Golden Globes")
+    i = 0
+    best_dressed = list()
+    while results and (i<NUMBER_OF_BEST_DRESSED):
+        next = max(results, key = results.get);
+        best_dressed.append(next);
+        results.pop(next);
+        i += 1
+    return best_dressed
+
+
+def find_presenters():
+    # This function will find the host of the show.
+    results = dict()
+    for tweet in tweets:
+        possible_winners = list()
+        tweet_text = tweet['text']
+        host_words = ["presented by", "presenter", "presenting"]
+        for w in host_words:
+            if w in tweet_text:
+                possible_winners = possible_winners + re.findall(BIGRAM_RE, tweet_text)
+        for r in possible_winners:
+            if r in results:
+                results[r] += 1
+            else:
+                results[r] = 1
+    results.pop("Golden Globes")
+    i = 0
+    presenters = list()
+    while results and (i<NUMBER_OF_BEST_DRESSED):
+        next = max(results, key = results.get);
+        presenters.append(next);
+        results.pop(next);
+        i += 1
+    return presenters
 
 
 
-
+            
 
 
 
@@ -167,15 +248,52 @@ def find_host():
 
 def main():
     host = find_host()
-    print "\nHost: " + host
+    print "\nHOST:\n" + host
+    best_dressed = find_best_dressed()
+    print "\n" + str(NUMBER_OF_BEST_DRESSED) + " BEST DRESSED:\n"
+    for x in range(0,NUMBER_OF_BEST_DRESSED):
+        print str(x+1) + ": " + best_dressed[x]
+
+    print "\n" + str(NUMBER_OF_PRESENTERS) + " MOST POPULAR PRESENTERS (ACCORDING TO TWITTER):\n"
+    presenters = find_presenters();
+    for x in range(0,NUMBER_OF_PRESENTERS):
+        print str(x+1) + ": " + presenters[x]
+
     results = find_all_winners()
-    print "\nAWARD WINNERS:\n"
+
+    # ONLY PRINT MOVIE AWARDS
+    print "\nMOVIE AWARD WINNERS:\n"
     for award, winner in results.iteritems():
-        if winner:
-            print award + ": " + winner
-        else:
-            print "Could not find winner for " + award
+        if AWARDS_NAMES.index(award) < 14:
+            if winner:
+                print award + ": " + winner
+            else:
+                print "Could not find winner for " + award
     print "\n"
+
+    # ONLY PRINT MOVIE AWARDS
+    print "\nTELEVISION AWARD WINNERS:\n"
+    for award, winner in results.iteritems():
+        if AWARDS_NAMES.index(award) >= 14:
+            if winner: 
+                print award + ": " + winner
+            else:
+                print "Could not find winner for " + award
+    print "\n"
+
+
+    # for x in range(0,NUMBER_OF_AWARDS):
+    #     if x == 0:
+    #         print "MOVIE AWARDS:\n"
+    #     if x == 14:
+    #         print "\nTELEVISION AWARDS:\n"
+    #     a = results(AWARDS_NAMES[x])
+    #     if a:
+    #         print AWARDS_NAMES[x] + ": " + results(AWARDS_NAMES[x])
+    #     else:
+    #         print "Could not find winner for " + AWARDS_NAMES[x]
+
+
 
 if __name__ == '__main__':
     main()
